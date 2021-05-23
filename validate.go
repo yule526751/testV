@@ -13,13 +13,12 @@ import (
 var Trans ut.Translator
 
 // InitValidator 初始化中文验证器
-func InitValidator() {
+func InitValidator(v *validator.Validate) {
 	// 中文翻译器
 	t := ut.New(zh.New())
 	Trans, _ = t.GetTranslator("zh")
 
 	// 校验器
-	v := validator.New()
 	v.RegisterTagNameFunc(func(field reflect.StructField) string {
 		label := field.Tag.Get("label")
 		if label == "" {
