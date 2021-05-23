@@ -7,14 +7,18 @@ import (
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 	"log"
 	"reflect"
+	"strings"
 )
 
 var Validate *validator.Validate
 var Trans ut.Translator
 
-func InitValidator()  {
+// InitValidator 初始化中文验证器
+func InitValidator() {
+	// 中文翻译器
 	translator := ut.New(zh.New())
-	Trans ,_=translator.GetTranslator("zh")
+	Trans, _ = translator.GetTranslator("zh")
+
 	// 校验器
 	validate := validator.New()
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
@@ -24,6 +28,7 @@ func InitValidator()  {
 		}
 		return label
 	})
+
 	// 注册翻译器到校验器
 	err := zhTranslations.RegisterDefaultTranslations(validate, Trans)
 	if err != nil {
@@ -32,13 +37,15 @@ func InitValidator()  {
 }
 
 // ValidateStruct 验证结构体
-func ValidateStruct(s interface{}) map[string]string{
-	errs:=make(map[string]string)
+func ValidateStruct(s interface{}) (rs map[string]string, pass bool) {
 	err := Validate.Struct(s)
 	if err != nil {
+		rs = make(map[string]string)
 		for _, e := range err.(validator.ValidationErrors) {
-			errs[e.Tag()]=e.Translate(Trans)
+			key := strings.SplitN(e.StructNamespace(), ".", 2)[1]
+			rs[key] = e.Translate(Trans)
 		}
+		return rs, true
 	}
-	return  errs
+	return
 }
